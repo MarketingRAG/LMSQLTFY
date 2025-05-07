@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMSQLTFY - Let Me SQL That For You</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .chat-container {
+            height: 70vh;
+            overflow-y: auto;
+        }
+        .message {
+            margin: 10px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: 20%;
+        }
+        .bot-message {
+            background-color: #f8f9fa;
+            margin-right: 20%;
+        }
+        .visualization-container {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">LMSQLTFY - Let Me SQL That For You</h1>
+        
+        <div class="chat-container border rounded p-3" id="chatContainer">
+            <!-- Messages will be added here -->
+        </div>
+        
+        <div class="input-group mt-3">
+            <input type="text" id="userInput" class="form-control" placeholder="Ask a question about airline delays...">
+            <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function addMessage(message, isUser) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            
+            if (isUser) {
+                messageDiv.textContent = message;
+            } else {
+                const response = JSON.parse(message);
+                
+                // Add SQL query
+                const sqlDiv = document.createElement('div');
+                sqlDiv.innerHTML = `<strong>SQL Query:</strong><br><code>${response.sql_query}</code>`;
+                messageDiv.appendChild(sqlDiv);
+                
+                // Add visualization if exists
+                if (response.visualization) {
+                    const vizDiv = document.createElement('div');
+                    vizDiv.className = 'visualization-container';
+                    messageDiv.appendChild(vizDiv);
+                    Plotly.newPlot(vizDiv, JSON.parse(response.visualization));
+                }
+                
+                // Add data table
+                if (response.data.length > 0) {
+                    const tableDiv = document.createElement('div');
+                    tableDiv.className = 'mt-3';
+                    const table = document.createElement('table');
+                    table.className = 'table table-striped';
+                    
+                    // Create header
+                    const thead = document.createElement('thead');
+                    const headerRow = document.createElement('tr');
+                    Object.keys(response.data[0]).forEach(key => {
+                        const th = document.createElement('th');
+                        th.textContent = key;
+                        headerRow.appendChild(th);
+                    });
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+                    
+                    // Create body
+                    const tbody = document.createElement('tbody');
+                    response.data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        Object.values(row).forEach(value => {
+                            const td = document.createElement('td');
+                            td.textContent = value;
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+                    table.appendChild(tbody);
+                    tableDiv.appendChild(table);
+                    messageDiv.appendChild(tableDiv);
+                }
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage(message, true);
+                input.value = '';
+                
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message }),
+                    });
+                    
+                    const data = await response.text();
+                    addMessage(data, false);
+                } catch (error) {
+                    console.error('Error:', error);
+                    addMessage('Sorry, there was an error processing your request.', false);
+                }
+            }
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html> 
