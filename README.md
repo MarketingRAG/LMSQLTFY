@@ -22,7 +22,7 @@ LMSQLTFY is an AI-powered SQL query generator and data visualization tool that h
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/lmsqltfy.git
+git clone https://github.com/MarketingRAG/lmsqltfy.git
 cd lmsqltfy
 ```
 
