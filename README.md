@@ -1,4 +1,5 @@
 # LMSQLTFY
+AKA The Vinny Bot - A shout out to my friend who works in business intelligence and inspired this idea by saying "people are always asking me to write simple queries, it seems like AI should be able to handle that"
 
 LMSQLTFY is an AI-powered SQL query generator and data visualization tool that helps you explore your database through natural language. It uses Google's Gemini AI to convert your questions into SQL queries and creates beautiful visualizations and presentations of the results.
 
