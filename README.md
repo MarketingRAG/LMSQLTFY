@@ -1,52 +1,79 @@
-# LMSQLTFY - Let Me SQL That For You
+# LMSQLTFY
 
-A chatbot that helps users query airline delay data using natural language. The application uses Gemini 1.5-flash to convert natural language questions into SQL queries and provides visualizations of the results.
+LMSQLTFY is an AI-powered SQL query generator and data visualization tool that helps you explore your database through natural language. It uses Google's Gemini AI to convert your questions into SQL queries and creates beautiful visualizations and presentations of the results.
+
+## Features
+
+- 🤖 Natural language to SQL conversion using Gemini AI
+- 📊 Automatic data visualization with Plotly
+- 🎨 Beautiful presentation generation with Slidev
+- 🔄 Real-time query execution and results
+- 📱 Modern, responsive web interface
 
 ## Prerequisites
 
 - Python 3.8+
-- PostgreSQL
-- Google Cloud API key with Gemini access
+- Node.js 16+
+- PostgreSQL database
+- Google Cloud API key for Gemini AI
 
-## Setup
+## Installation
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/lmsqltfy.git
+cd lmsqltfy
+```
 
-3. Download the airline delay dataset from [Kaggle](https://www.kaggle.com/datasets/sriharshaeedala/airline-delay) and place it in the project root directory as `airline_delay.csv`
+2. Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-4. Copy `.env.example` to `.env` and fill in your configuration:
-   ```bash
-   cp .env.example .env
-   ```
+3. Install Node.js dependencies for presentation generation:
+```bash
+npm install
+```
 
-5. Set up the database:
-   ```bash
-   python setup_db.py
-   ```
-
-6. Run the application:
-   ```bash
-   python app.py
-   ```
-
-7. Open your browser and navigate to `http://localhost:5000`
+4. Create a `.env` file in the root directory with the following variables:
+```env
+GOOGLE_API_KEY=your_gemini_api_key
+DATABASE_URL=postgresql://username:password@localhost:5432/your_database
+```
 
 ## Usage
 
-1. Type your question about airline delays in natural language
-2. The chatbot will:
-   - Convert your question to SQL
-   - Execute the query
-   - Display the results in a table
-   - Show a visualization if applicable
+1. Start the Flask application:
+```bash
+python app.py
+```
 
-## Example Questions
+2. Open your browser and navigate to `http://localhost:5000`
 
-- "Which day of the year has the most delayed flights?"
-- "What is the average delay time by airline?"
-- "Show me the top 5 airports with the most delays"
-- "What is the correlation between weather conditions and flight delays?" 
+3. Enter your question in natural language, and LMSQLTFY will:
+   - Generate the appropriate SQL query
+   - Execute it against your database
+   - Create a visualization of the results
+   - Optionally generate a presentation
+
+## API Endpoints
+
+- `GET /`: Main web interface
+- `POST /api/chat`: Process natural language questions and return SQL results
+- `POST /api/presentation/view`: Generate and view a presentation
+- `POST /api/presentation/export`: Export presentation as PDF
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [Google Gemini AI](https://ai.google.dev/) for natural language processing
+- [Flask](https://flask.palletsprojects.com/) for the web framework
+- [Plotly](https://plotly.com/) for data visualization
+- [Slidev](https://sli.dev/) for presentation generation 

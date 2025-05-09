@@ -115,6 +115,58 @@
             padding: 1rem;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .add-to-presentation-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--cognac-gold);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .add-to-presentation-btn:hover {
+            background-color: #b38d4a;
+            transform: scale(1.05);
+        }
+
+        .presentation-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+        }
+
+        .presentation-controls.visible {
+            display: block;
+        }
+
+        .presentation-controls button {
+            background-color: var(--big-idea-crimson);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .presentation-controls button:hover {
+            background-color: #a00d24;
         }
 
         .input-container {
@@ -267,7 +319,49 @@
         </form>
     </div>
 
+    <div class="presentation-controls" id="presentationControls">
+        <button onclick="viewPresentation()">View Presentation</button>
+    </div>
+
     <script>
+        let currentPresentation = {
+            slides: [],
+            title: 'Data Analysis Presentation'
+        };
+
+        function addToPresentation(visualizationData, title) {
+            currentPresentation.slides.push({
+                type: 'visualization',
+                data: visualizationData,
+                title: title
+            });
+            
+            // Show presentation controls if not visible
+            document.getElementById('presentationControls').classList.add('visible');
+        }
+
+        async function viewPresentation() {
+            try {
+                const response = await fetch('/api/presentation/view', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(currentPresentation)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    window.open(data.presentationUrl, '_blank');
+                } else {
+                    throw new Error('Failed to generate presentation');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to generate presentation. Please try again.');
+            }
+        }
+
         function addMessage(message, isUser) {
             const chatContainer = document.getElementById('chatContainer');
             const messageDiv = document.createElement('div');
@@ -276,94 +370,107 @@
             if (isUser) {
                 messageDiv.textContent = message;
             } else {
-                const response = JSON.parse(message);
-                
-                // Add SQL query
-                const sqlDiv = document.createElement('div');
-                sqlDiv.className = 'sql-query';
-                sqlDiv.innerHTML = `<strong>SQL Query:</strong><br><code>${response.sql_query}</code>`;
-                messageDiv.appendChild(sqlDiv);
-                
-                // Add visualization if exists
-                if (response.visualization) {
-                    const vizDiv = document.createElement('div');
-                    vizDiv.className = 'visualization-container';
-                    messageDiv.appendChild(vizDiv);
-                    // Brand Plotly config
-                    const plotlyData = JSON.parse(response.visualization);
-                    const brandLayout = {
-                        font: {
-                            family: 'GT America, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
-                            color: '#1A1A1A',
-                            size: 16
-                        },
-                        paper_bgcolor: '#FAFAFA',
-                        plot_bgcolor: '#FAFAFA',
-                        xaxis: {
-                            color: '#1A1A1A',
-                            gridcolor: '#D4A759',
-                            tickfont: { family: 'JetBrains Mono, monospace', color: '#1A1A1A' }
-                        },
-                        yaxis: {
-                            color: '#1A1A1A',
-                            gridcolor: '#D4A759',
-                            tickfont: { family: 'JetBrains Mono, monospace', color: '#1A1A1A' }
-                        },
-                        margin: { t: 30, l: 50, r: 30, b: 50 },
-                    };
-                    // Brand colors for bars/lines
-                    if (plotlyData.data) {
-                        const brandColors = ['#C8102E', '#00B7FF', '#D4A759'];
-                        plotlyData.data.forEach((trace, i) => {
-                            trace.marker = trace.marker || {};
-                            trace.marker.color = brandColors[i % brandColors.length];
-                            if(trace.type === 'line' || trace.type === 'scatter') {
-                                trace.line = trace.line || {};
-                                trace.line.color = brandColors[i % brandColors.length];
-                            }
-                        });
+                try {
+                    const response = JSON.parse(message);
+                    
+                    // Add SQL query
+                    const sqlDiv = document.createElement('div');
+                    sqlDiv.className = 'sql-query';
+                    sqlDiv.innerHTML = `<strong>SQL Query:</strong><br><code>${response.sql_query}</code>`;
+                    messageDiv.appendChild(sqlDiv);
+                    
+                    // Add visualization if exists
+                    if (response.visualization) {
+                        const vizDiv = document.createElement('div');
+                        vizDiv.className = 'visualization-container';
+                        
+                        // Add "Add to Presentation" button
+                        const addButton = document.createElement('button');
+                        addButton.className = 'add-to-presentation-btn';
+                        addButton.textContent = 'Add to Presentation';
+                        addButton.onclick = () => addToPresentation(response.visualization, response.sql_query);
+                        vizDiv.appendChild(addButton);
+                        
+                        messageDiv.appendChild(vizDiv);
+                        // Brand Plotly config
+                        const plotlyData = JSON.parse(response.visualization);
+                        const brandLayout = {
+                            font: {
+                                family: 'GT America, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+                                color: '#1A1A1A',
+                                size: 16
+                            },
+                            paper_bgcolor: '#FAFAFA',
+                            plot_bgcolor: '#FAFAFA',
+                            xaxis: {
+                                color: '#1A1A1A',
+                                gridcolor: '#D4A759',
+                                tickfont: { family: 'JetBrains Mono, monospace', color: '#1A1A1A' }
+                            },
+                            yaxis: {
+                                color: '#1A1A1A',
+                                gridcolor: '#D4A759',
+                                tickfont: { family: 'JetBrains Mono, monospace', color: '#1A1A1A' }
+                            },
+                            margin: { t: 30, l: 50, r: 30, b: 50 },
+                        };
+                        // Brand colors for bars/lines
+                        if (plotlyData.data) {
+                            const brandColors = ['#C8102E', '#00B7FF', '#D4A759'];
+                            plotlyData.data.forEach((trace, i) => {
+                                trace.marker = trace.marker || {};
+                                trace.marker.color = brandColors[i % brandColors.length];
+                                if(trace.type === 'line' || trace.type === 'scatter') {
+                                    trace.line = trace.line || {};
+                                    trace.line.color = brandColors[i % brandColors.length];
+                                }
+                            });
+                        }
+                        Plotly.newPlot(vizDiv, plotlyData.data || plotlyData, brandLayout, {displayModeBar: false, responsive: true});
                     }
-                    Plotly.newPlot(vizDiv, plotlyData.data || plotlyData, brandLayout, {displayModeBar: false, responsive: true});
-                }
-                
-                // Add data table
-                if (response.data.length > 0) {
-                    const tableDiv = document.createElement('div');
-                    tableDiv.className = 'mt-3 table-responsive';
-                    const table = document.createElement('table');
-                    table.className = 'table';
                     
-                    // Create header
-                    const thead = document.createElement('thead');
-                    const headerRow = document.createElement('tr');
-                    Object.keys(response.data[0]).forEach(key => {
-                        const th = document.createElement('th');
-                        th.textContent = key;
-                        headerRow.appendChild(th);
-                    });
-                    thead.appendChild(headerRow);
-                    table.appendChild(thead);
-                    
-                    // Create body
-                    const tbody = document.createElement('tbody');
-                    response.data.forEach(row => {
-                        const tr = document.createElement('tr');
-                        Object.entries(row).forEach(([key, value]) => {
-                            const td = document.createElement('td');
-                            // Use JetBrains Mono for numbers
-                            if (typeof value === 'number' || (!isNaN(value) && value !== '' && value !== null)) {
-                                td.className = 'numeric';
-                                td.textContent = Number(value).toFixed(2);
-                            } else {
-                                td.textContent = value;
-                            }
-                            tr.appendChild(td);
+                    // Add data table
+                    if (response.data && response.data.length > 0) {
+                        const tableDiv = document.createElement('div');
+                        tableDiv.className = 'mt-3 table-responsive';
+                        const table = document.createElement('table');
+                        table.className = 'table';
+                        
+                        // Create header
+                        const thead = document.createElement('thead');
+                        const headerRow = document.createElement('tr');
+                        Object.keys(response.data[0]).forEach(key => {
+                            const th = document.createElement('th');
+                            th.textContent = key;
+                            headerRow.appendChild(th);
                         });
-                        tbody.appendChild(tr);
-                    });
-                    table.appendChild(tbody);
-                    tableDiv.appendChild(table);
-                    messageDiv.appendChild(tableDiv);
+                        thead.appendChild(headerRow);
+                        table.appendChild(thead);
+                        
+                        // Create body
+                        const tbody = document.createElement('tbody');
+                        response.data.forEach(row => {
+                            const tr = document.createElement('tr');
+                            Object.entries(row).forEach(([key, value]) => {
+                                const td = document.createElement('td');
+                                // Use JetBrains Mono for numbers
+                                if (typeof value === 'number' || (!isNaN(value) && value !== '' && value !== null)) {
+                                    td.className = 'numeric';
+                                    td.textContent = Number(value).toFixed(2);
+                                } else {
+                                    td.textContent = value;
+                                }
+                                tr.appendChild(td);
+                            });
+                            tbody.appendChild(tr);
+                        });
+                        table.appendChild(tbody);
+                        tableDiv.appendChild(table);
+                        messageDiv.appendChild(tableDiv);
+                    }
+                } catch (error) {
+                    console.error('Error parsing message:', error);
+                    messageDiv.textContent = message;
                 }
             }
             

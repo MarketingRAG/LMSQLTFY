@@ -20,17 +20,39 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment
+.env
+.venv
+env/
 venv/
 ENV/
-env/
-.env
+env.bak/
+venv.bak/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+.DS_Store
+
+# Project specific
+*.pdf
+presentation/
+temp/
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.env
 
 # OS
 .DS_Store
